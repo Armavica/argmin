@@ -17,6 +17,9 @@ extern crate ndarray_linalg;
 extern crate num;
 extern crate rand;
 
+use std::fmt::Debug;
+use std::default::Default;
+use num::{Float, FromPrimitive, Num, ToPrimitive};
 use parameter::ArgminParameter;
 use result::ArgminResult;
 use problem::Problem;
@@ -25,11 +28,12 @@ use errors::*;
 /// Trait for cost function values
 /// TODO: Do this with trait aliases once they work in rust.
 pub trait ArgminCostValue
-    : num::Float + num::FromPrimitive + std::default::Default + PartialOrd {
+    : Float + FromPrimitive + ToPrimitive + Num + Default + Clone + Debug + PartialOrd
+    {
 }
 impl<T> ArgminCostValue for T
 where
-    T: num::Float + num::FromPrimitive + num::Num + std::default::Default + PartialOrd,
+    T: Float + FromPrimitive + ToPrimitive + Num + Default + Clone + Debug + PartialOrd,
 {
 }
 

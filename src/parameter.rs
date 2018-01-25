@@ -3,9 +3,11 @@
 use errors::*;
 use std::fmt::Debug;
 use std::default::Default;
+// use num::ToPrimitive;
 use rand;
 use rand::distributions::{IndependentSample, Range};
 use ndarray::Array1;
+use ArgminCostValue;
 
 /// This trait needs to be implemented for every parameter fed into the solvers.
 /// This is highly *UNSTABLE* and will change in the future.
@@ -71,15 +73,22 @@ impl ArgminParameter for Vec<f64> {
     }
 }
 
-impl ArgminParameter for Array1<f64> {
+impl<T> ArgminParameter for Array1<T>
+where
+    T: ArgminCostValue + rand::distributions::range::SampleRange,
+{
     fn modify(
         &self,
-        lower_bound: &Array1<f64>,
-        upper_bound: &Array1<f64>,
-        constraint: &Fn(&Array1<f64>) -> bool,
-    ) -> Array1<f64> {
+        lower_bound: &Array1<T>,
+        upper_bound: &Array1<T>,
+        constraint: &Fn(&Array1<T>) -> bool,
+    ) -> Array1<T> {
         let step = Range::new(0, self.len());
-        let range = Range::new(-1.0_f64, 1.0_f64);
+        // let range = Range::new(-1.0_f64, 1.0_f64);
+        let range = Range::new(
+            T::from_f64(-1.0_f64).unwrap(),
+            T::from_f64(1.0_f64).unwrap(),
+        );
         let mut rng = rand::thread_rng();
         let mut param = self.clone();
         loop {
@@ -98,10 +107,10 @@ impl ArgminParameter for Array1<f64> {
         param
     }
 
-    fn random(lower_bound: &Array1<f64>, upper_bound: &Array1<f64>) -> Result<Array1<f64>> {
+    fn random(lower_bound: &Array1<T>, upper_bound: &Array1<T>) -> Result<Array1<T>> {
         // unimplemented!()
         let mut rng = rand::thread_rng();
-        let out: Array1<f64> = lower_bound
+        let out: Array1<T> = lower_bound
             .iter()
             .zip(upper_bound.iter())
             .map(|(a, b)| {
