@@ -88,7 +88,9 @@ where
 impl<'a, T> ArgminSolver<'a> for Newton<'a, T>
 where
     T: ArgminNewtonValue + 'a,
-    Array2<T>: Inverse, // + Dot<Array1<T>>,
+    Array2<T>: Inverse,
+    Array1<T>: Inverse,
+    // Array2<T>: Inverse + Dot<Inverse<Output = Array1<T>>>,
 {
     type A = Array1<T>;
     type B = T;
@@ -115,9 +117,9 @@ where
         let g = (self.state.problem.unwrap().gradient.unwrap())(&self.state.param);
         // let h_inv: Array2<_> =
         // let h_inv =
-        let h_inv: Result<Array2<_>> =
-            (&(self.state.problem.unwrap().hessian.unwrap())(&self.state.param)).inv();
-        let tmp: Array1<T> = h_inv.unwrap().dot::<Array1<T>>(&g);
+        let h_inv: Array2<T> =
+            (&(self.state.problem.unwrap().hessian.unwrap())(&self.state.param)).inv()?;
+        let tmp: Array1<T> = h_inv.dot::<Array1<T>>(&g);
         self.state.param = self.state.param.clone() - T::from_f64(self.gamma).unwrap() * tmp;
         // self.state.param.clone() - T::from_f64(self.gamma).unwrap() * h_inv.dot(&g);
         self.state.iter += 1;
